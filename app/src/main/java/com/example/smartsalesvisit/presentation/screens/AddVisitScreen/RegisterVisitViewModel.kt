@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartsalesvisit.common.ResultState
-import com.example.smartsalesvisit.data.AI.network.NetworkUtils.NetworkUtils
+import com.example.smartsalesvisit.common.NetworkUtils.NetworkUtils
 import com.example.smartsalesvisit.domain.models.Visit
 import com.example.smartsalesvisit.domain.useCase.AiVisitUseCase
 import com.example.smartsalesvisit.domain.useCase.addVisitUseCase
@@ -73,10 +73,10 @@ class RegisterVisitViewModel(
 
         _state.value = RegisterVisitState(isLoading = true)
 
-        // 1️⃣ SAVE INITIAL VISIT
+        // 1️ SAVE INITIAL VISIT
         addVisitUseCase.addVisit(visit).collect {}
 
-        // 2️⃣ CALL AI
+        // 2️ CALL AI
         aiVisitUseCase.generateVisitAi(visit).collect { aiResult ->
 
             when (aiResult) {
@@ -88,14 +88,14 @@ class RegisterVisitViewModel(
                         aiStatus = "DONE"
                     )
 
-                    // 3️⃣ Upload to server
+                    // 3️ Upload to server
                     uploadVisitOnServerUseCase.uploadVisit(aiVisit).collect { serverResult ->
 
                         when (serverResult) {
 
                             is ResultState.Success -> {
 
-                                // 4️⃣ Mark synced locally
+                                // 4️ Mark synced locally
                                 val syncedVisit = aiVisit.copy(
                                     syncStatus = "SYNCED"
                                 )

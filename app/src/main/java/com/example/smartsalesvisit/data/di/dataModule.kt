@@ -16,20 +16,20 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
-    // Room Database
+
     single<AppDatabase> {
         Room.databaseBuilder(
-            androidContext(),        // Koin provides Application context
+            androidContext(),
             AppDatabase::class.java,
             "visit_database"
         ) .fallbackToDestructiveMigration()
             .build()
     }
 
-    // DAO
+
     single<VisitDao> { get<AppDatabase>().visitDao() }
 
-    // Repository
+
     single< LocalStorageRepository> { VisitRepositoryImpl(dao = get()) }
 
     single<FirebaseAuth> { FirebaseAuth.getInstance() }

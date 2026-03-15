@@ -1,4 +1,4 @@
-package com.example.smartsalesvisit.ui.theme
+package com.example.smartsalesvisit.common
 
 import com.example.smartsalesvisit.data.di.dataModule
 import com.example.smartsalesvisit.domain.di.domainModule

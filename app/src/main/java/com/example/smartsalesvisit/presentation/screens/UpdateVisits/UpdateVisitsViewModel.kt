@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartsalesvisit.common.ResultState
-import com.example.smartsalesvisit.data.AI.network.NetworkUtils.NetworkUtils
+import com.example.smartsalesvisit.common.NetworkUtils.NetworkUtils
 import com.example.smartsalesvisit.domain.models.Visit
 import com.example.smartsalesvisit.domain.useCase.AiVisitUseCase
 import com.example.smartsalesvisit.domain.useCase.updateVisitUseCase
@@ -71,10 +71,10 @@ class UpdateVisitsViewModel(
 
         _updateVisitsState.value = UpdateVisitsState(isLoading = true)
 
-        // 1️⃣ UPDATE ROOM FIRST
+        // 1️ UPDATE ROOM FIRST
         updateVisitUseCase.updateVisit(visit).collect {}
 
-        // 2️⃣ CALL AI AGAIN (if notes changed)
+        // 2️ CALL AI AGAIN (if notes changed)
         aiVisitUseCase.generateVisitAi(visit).collect { aiResult ->
 
             when (aiResult) {
@@ -85,10 +85,10 @@ class UpdateVisitsViewModel(
                         aiStatus = "DONE"
                     )
 
-                    // 3️⃣ UPDATE ROOM WITH AI DATA
+                    // 3️ UPDATE ROOM WITH AI DATA
                     updateVisitUseCase.updateVisit(aiVisit).collect {}
 
-                    // 4️⃣ UPLOAD TO SERVER
+                    // 4️ UPLOAD TO SERVER
                     uploadVisitOnServerUseCase.uploadVisit(aiVisit).collect { serverResult ->
 
                         when (serverResult) {

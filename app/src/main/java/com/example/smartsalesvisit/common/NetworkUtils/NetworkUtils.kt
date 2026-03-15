@@ -1,4 +1,4 @@
-package com.example.smartsalesvisit.data.AI.network.NetworkUtils
+package com.example.smartsalesvisit.common.NetworkUtils
 
 import android.annotation.SuppressLint
 import android.content.Context
