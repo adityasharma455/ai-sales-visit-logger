@@ -16,7 +16,7 @@ class SyncManager(
             try {
                 var currentVisit = visit
 
-                // 1️⃣ Step: AI Processing
+                // 1️ Step: AI Processing
                 if (currentVisit.aiStatus != "DONE") {
                     aiVisitUseCase.generateVisitAi(currentVisit).collect { result ->
                         if (result is ResultState.Success) {
@@ -27,11 +27,11 @@ class SyncManager(
                     }
                 }
 
-                // 2️⃣ Step: Upload to Firebase (Only if AI is done)
+                // 2️ Step: Upload to Firebase (Only if AI is done)
                 if (currentVisit.aiStatus == "DONE") {
                     serverRepository.uploadVisit(currentVisit).collect { result ->
                         if (result is ResultState.Success) {
-                            // 3️⃣ Step: Final Sync Mark
+                            // 3️ Step: Final Sync Mark
                             visitRepository.updateVisit(
                                 currentVisit.copy(syncStatus = "SYNCED")
                             ).collect {}
