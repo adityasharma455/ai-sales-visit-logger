@@ -104,15 +104,10 @@ If any step fails, the visit remains **PENDING** so it can be retried later.
 
 # Screenshots
 
-### Visit List
-![Visit List](screenshots/All_Visits.png)
 
-### Create Visit
-![Create Visit](screenshots/Register_Visit.png)
-
-### Update Visit
-![Update Visit](screenshots/Update_Visit.png)
-
+| All_Visits | Register_Visit | Update_Visit |
+|------------|--------|--------|
+| ![All_Visits](screenshots/All_Visits.jpeg) | ![Register_Visit](screenshots/Register_Visit.jpeg) | ![Update_Visit](screenshots/Update_Visit.jpeg) | 
 ---
 
 # Tech Stack
