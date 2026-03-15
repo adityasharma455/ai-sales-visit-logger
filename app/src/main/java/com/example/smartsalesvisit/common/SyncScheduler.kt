@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 object SyncScheduler {
 
-    // Inside SyncScheduler.kt
+    
     fun startSync(context: Context) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED) // Only run when online
@@ -31,7 +31,7 @@ object SyncScheduler {
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "visit_sync",
-            ExistingWorkPolicy.REPLACE, // REPLACE ensures the latest manual refresh triggers a new check
+            ExistingWorkPolicy.REPLACE, 
             request
         )
     }
