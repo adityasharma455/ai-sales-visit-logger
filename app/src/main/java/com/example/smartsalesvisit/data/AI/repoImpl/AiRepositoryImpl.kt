@@ -60,11 +60,23 @@ class AiRepositoryImpl(
             val nextStep = Regex("Recommended Next Step:\\s*(.*)")
                 .find(aiText)?.groupValues?.get(1)?.trim()
 
+            val customerEmotion = Regex("Customer Emotion:\\s*(.*)")
+                .find(aiText)?.groupValues?.get(1)?.trim()
+
+            val probability = Regex("Deal Probability:\\s*(.*)")
+                .find(aiText)?.groupValues?.get(1)?.trim()
+
+            val strategy = Regex("Suggested Strategy:\\s*(.*)")
+                .find(aiText)?.groupValues?.get(1)?.trim()
+
             val updatedVisit = visit.copy(
                 meetingSummary = summary,
                 painPoints = painPoints,
                 actionItems = actionItems,
                 nextStep = nextStep,
+                customerEmotion = customerEmotion,
+                dealProbability = probability,
+                suggestedStrategy = strategy,
                 aiStatus = "Completed"
             )
 

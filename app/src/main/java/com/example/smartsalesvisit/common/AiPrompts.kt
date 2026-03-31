@@ -4,20 +4,25 @@ object AiPrompts {
 
     fun visitSummaryPrompt(notes: String): String {
         return """
-        You are a CRM assistant.
+        You are an AI Sales Assistant.
 
-        Extract information from the meeting notes.
+        Analyze the following sales meeting notes and generate structured output.
 
-        Return ONLY in this format:
+        Notes:
+        $notes
+
+        Give response strictly in this format:
 
         Meeting Summary:
         Pain Points:
         Action Items:
         Recommended Next Step:
+        Customer Emotion: (Interested / Neutral / Hesitant / Negative)
+        Deal Probability: (Give percentage like 70%)
+        Suggested Strategy:
 
-        Meeting Notes:
-        $notes
-        """.trimIndent()
+        Keep answers short and clear.
+    """.trimIndent()
     }
 
 }

@@ -23,6 +23,9 @@ data class Visit(
     val painPoints: String?,
     val actionItems: String?,
     val nextStep: String?,
+    val customerEmotion: String? = null,
+    val dealProbability: String? = null,
+    val suggestedStrategy: String? = null,
 
     val outcomeStatus: String,
 

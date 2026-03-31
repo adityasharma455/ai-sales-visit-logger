@@ -44,6 +44,10 @@ fun UpdateVisitScreen(
     var actionItems by rememberSaveable { mutableStateOf(visit.actionItems ?: "") }
     var nextStep by rememberSaveable { mutableStateOf(visit.nextStep ?: "") }
 
+    var customerEmotion by rememberSaveable { mutableStateOf(visit.customerEmotion ?: "") }
+    var dealProbability by rememberSaveable { mutableStateOf(visit.dealProbability ?: "") }
+    var suggestedStrategy by rememberSaveable { mutableStateOf(visit.suggestedStrategy ?: "") }
+
     var outcomeStatus by rememberSaveable { mutableStateOf(visit.outcomeStatus) }
     var followUpDate by rememberSaveable { mutableStateOf(visit.followUpDate ?: " ") }
 
@@ -181,6 +185,24 @@ fun UpdateVisitScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
+                        OutlinedTextField(
+                            value = customerEmotion,
+                            onValueChange = { customerEmotion = it },
+                            label = { Text("Customer Emotion") }
+                        )
+
+                        OutlinedTextField(
+                            value = dealProbability,
+                            onValueChange = { dealProbability = it },
+                            label = { Text("Deal Probability") }
+                        )
+
+                        OutlinedTextField(
+                            value = suggestedStrategy,
+                            onValueChange = { suggestedStrategy = it },
+                            label = { Text("Suggested Strategy") }
+                        )
+
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
@@ -232,6 +254,9 @@ fun UpdateVisitScreen(
                                     meetingSummary = meetingSummary,
                                     painPoints = painPoints,
                                     actionItems = actionItems,
+                                    customerEmotion = customerEmotion,
+                                    dealProbability = dealProbability,
+                                    suggestedStrategy = suggestedStrategy,
                                     outcomeStatus = outcomeStatus,
                                     followUpDate = followUpDate
                                 )

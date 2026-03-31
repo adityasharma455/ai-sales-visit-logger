@@ -1,6 +1,11 @@
 package com.example.smartsalesvisit.presentation.screens.AddVisitScreen
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +48,8 @@ fun RegisterVisitScreen(
         "No interest"
     )
 
+
+
     val gradient = Brush.verticalGradient(
         listOf(
             Color(0xFF0F2027),
@@ -54,6 +61,24 @@ fun RegisterVisitScreen(
     LaunchedEffect(state.Success) {
         if (state.Success == true) {
             onVisitAdded()
+        }
+    }
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+
+            val text = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+
+            if (!text.isNullOrBlank()) {
+                notes = notes + " " + text   // append to notes
+            } else {
+                Toast.makeText(context, "No speech detected", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -126,6 +151,27 @@ fun RegisterVisitScreen(
                             minLines = 3
                         )
 
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(onClick = {
+
+                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                    putExtra(
+                                        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                    )
+                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak meeting notes")
+                                }
+
+                                speechLauncher.launch(intent)
+
+                            }) {
+                                Text("🎤 Speak")
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
@@ -196,6 +242,9 @@ fun RegisterVisitScreen(
                                     painPoints = null,
                                     actionItems = null,
                                     nextStep = null,
+                                    customerEmotion = null,
+                                    dealProbability = null,
+                                    suggestedStrategy = null,
                                     outcomeStatus = outcomeStatus,
                                     followUpDate = followUpDate,
                                     aiStatus = "None",
