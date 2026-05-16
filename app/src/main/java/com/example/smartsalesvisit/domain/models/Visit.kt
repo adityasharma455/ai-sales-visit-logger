@@ -7,7 +7,6 @@ import kotlinx.parcelize.Parcelize
 @IgnoreExtraProperties
 @Parcelize
 data class Visit(
-
     val id: String = "",
     val salesPersonId: String = "",
 
@@ -29,11 +28,7 @@ data class Visit(
     val suggestedStrategy: String? = null,
 
     val outcomeStatus: String = "",
-
     val followUpDate: String? = null,
-
     val aiStatus: String = "",
-
     val syncStatus: String = ""
-
 ) : Parcelable

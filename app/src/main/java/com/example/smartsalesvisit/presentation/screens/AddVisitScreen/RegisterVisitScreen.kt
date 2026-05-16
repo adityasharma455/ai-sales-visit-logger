@@ -6,12 +6,37 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -20,11 +45,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.smartsalesvisit.common.AudioRecorderManager
-import com.example.smartsalesvisit.domain.models.Visit
-import org.koin.compose.viewmodel.koinViewModel
-import java.util.*
 import com.example.smartsalesvisit.common.playRecording
+import com.example.smartsalesvisit.domain.models.Visit
 import com.example.smartsalesvisit.presentation.screens.utils.DatePickerField
+import org.koin.compose.viewmodel.koinViewModel
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,14 +57,14 @@ fun RegisterVisitScreen(
     viewModel: RegisterVisitViewModel = koinViewModel(),
     onVisitAdded: () -> Unit
 ) {
-
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val speechState by viewModel.speechToTextState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     var customerName by rememberSaveable { mutableStateOf("") }
     var contactPerson by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
-    var territory by remember { mutableStateOf("") }
+    var territory by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable { mutableStateOf("") }
 
     var outcomeStatus by rememberSaveable { mutableStateOf("Completed") }
@@ -52,38 +77,11 @@ fun RegisterVisitScreen(
     var isRecording by remember { mutableStateOf(false) }
     var audioPath by remember { mutableStateOf<String?>(null) }
 
-    val speechState by viewModel.speechToTextState.collectAsState()
-
-    LaunchedEffect(speechState) {
-
-        speechState.Success?.let {
-            notes = it
-
-            Toast.makeText(
-                context,
-                "Transcription Completed",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-
-        speechState.Error?.let {
-            if (it.isNotBlank()) {
-                Toast.makeText(
-                    context,
-                    it,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
     val outcomeOptions = listOf(
         "Completed",
         "Follow-up needed",
         "No interest"
     )
-
-
 
     val gradient = Brush.verticalGradient(
         listOf(
@@ -99,27 +97,22 @@ fun RegisterVisitScreen(
         }
     }
 
-//    val speechLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.StartActivityForResult()
-//    ) { result ->
-//
-//        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-//
-//            val text = result.data
-//                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-//                ?.firstOrNull()
-//
-//            if (!text.isNullOrBlank()) {
-//                notes = notes + " " + text   // append to notes
-//            } else {
-//                Toast.makeText(context, "No speech detected", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
+    LaunchedEffect(speechState) {
+        speechState.Success?.let {
+            notes = it
+            Toast.makeText(context, "Transcription Completed", Toast.LENGTH_SHORT).show()
+        }
+
+        speechState.Error?.let {
+            if (it.isNotBlank()) {
+                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) @androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO) { granted ->
+    ) { granted ->
         if (granted) {
             audioPath = recorder.startRecording()
             isRecording = true
@@ -129,9 +122,7 @@ fun RegisterVisitScreen(
         }
     }
 
-
     Scaffold(
-
         topBar = {
             TopAppBar(
                 title = {
@@ -142,7 +133,6 @@ fun RegisterVisitScreen(
                 }
             )
         }
-
     ) { padding ->
 
         Box(
@@ -165,8 +155,7 @@ fun RegisterVisitScreen(
                 ) {
 
                     Column(
-                        modifier = Modifier
-                            .padding(20.dp),
+                        modifier = Modifier.padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
 
@@ -210,20 +199,12 @@ fun RegisterVisitScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-
-
-
-                            OutlinedTextField(
-                                value = location,
-                                onValueChange = { location = it },
-                                label = { Text("Location") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-
-
-
-
+                        OutlinedTextField(
+                            value = location,
+                            onValueChange = { location = it },
+                            label = { Text("Location") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
                         OutlinedTextField(
                             value = notes,
@@ -233,12 +214,10 @@ fun RegisterVisitScreen(
                             minLines = 3
                         )
 
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-
                             Button(
                                 onClick = {
                                     permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -252,36 +231,39 @@ fun RegisterVisitScreen(
 
                             Button(
                                 onClick = {
-
                                     audioPath = recorder.stopRecording()
                                     isRecording = false
 
-                                    Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Recording saved",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
 
                                     audioPath?.let { path ->
-                                        viewModel.transcribeAudioToNotes(path) // 🔥 NO CALLBACK
+                                        viewModel.transcribeAudioToNotes(path)
                                     }
-
                                 },
                                 enabled = isRecording
                             ) {
                                 Text("⏹ Stop")
                             }
-
-
                         }
 
                         Button(
                             onClick = {
                                 audioPath?.let {
                                     playRecording(it)
-                                } ?: Toast.makeText(context, "No recording found", Toast.LENGTH_SHORT).show()
+                                } ?: Toast.makeText(
+                                    context,
+                                    "No recording found",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             },
-                            enabled = !isRecording && audioPath != null   // 🔥 KEY FIX
+                            enabled = !isRecording && audioPath != null
                         ) {
                             Text("Play Recording")
                         }
-
 
                         if (speechState.isLoading) {
                             Row(
@@ -294,8 +276,6 @@ fun RegisterVisitScreen(
                             }
                         }
 
-
-
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
@@ -304,14 +284,12 @@ fun RegisterVisitScreen(
                         )
 
                         outcomeOptions.forEach { option ->
-
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-
                                 RadioButton(
                                     selected = outcomeStatus == option,
                                     onClick = { outcomeStatus = option }
@@ -323,40 +301,30 @@ fun RegisterVisitScreen(
                                     text = option,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-
                             }
-
                         }
 
                         if (outcomeStatus == "Follow-up needed") {
-
-
-                            if (outcomeStatus == "Follow-up needed") {
-
-                                DatePickerField(
-                                    label = "Follow-up Date"
-                                ) { _, formatted ->
-                                    followUpDate = formatted   // ✅ ONLY STRING
-                                }
-
+                            DatePickerField(
+                                label = "Follow-up Date"
+                            ) { _, formatted ->
+                                followUpDate = formatted
                             }
-
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        val isFormValid =customerName.isNotBlank()&&
-                                    contactPerson.isNotBlank()&&
-                                    location.isNotBlank()&&
+                        val isFormValid =
+                            customerName.isNotBlank() &&
+                                    contactPerson.isNotBlank() &&
+                                    location.isNotBlank() &&
                                     customerEmail.isNotBlank() &&
                                     isValidEmail(customerEmail) &&
                                     territory.isNotBlank() &&
                                     (outcomeStatus != "Follow-up needed" || followUpDate.isNotBlank())
 
-
                         Button(
                             onClick = {
-
                                 if (!isValidEmail(customerEmail)) {
                                     emailError = "Invalid email format"
                                     return@Button
@@ -367,7 +335,7 @@ fun RegisterVisitScreen(
                                     salesPersonId = "localUser",
                                     customerName = customerName,
                                     contactPerson = contactPerson,
-                                    customerEmail = customerEmail, // ✅ added
+                                    customerEmail = customerEmail,
                                     location = location,
                                     visitDate = System.currentTimeMillis(),
                                     territory = territory,
@@ -387,50 +355,35 @@ fun RegisterVisitScreen(
                                 )
 
                                 viewModel.addVisit(visit)
-
                             },
-                            enabled = isFormValid, // 🔥 BUTTON CONTROL HERE
+                            enabled = isFormValid,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
                         ) {
-
                             Text(
                                 text = "Save Visit",
                                 style = MaterialTheme.typography.titleMedium
                             )
-
                         }
-
                     }
-
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
-
             }
 
             if (state.isLoading) {
-
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
-
             }
-
         }
-
     }
-
 }
-
-
-
 
 fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
-
