@@ -13,3 +13,18 @@ object AddVisitScreen
 
 @Serializable
 object UpdateVisitScreen
+
+@Serializable
+object ManagerVisitScreen
+
+@Serializable
+object SalesAnalyticsScreen
+
+@Serializable
+object ManagerVisitDetailScreen
+
+@Serializable
+object ChatBotScreenRoute
+
+@Serializable
+object ManagerSummaryScreen

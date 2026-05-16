@@ -11,19 +11,25 @@ data class VisitEntity(
 
     val salesPersonId: String,
 
-    val customerName: String,
-    val contactPerson: String,
+    val customerName: String ,
+    val contactPerson: String ,
+    val customerEmail:String,
 
     val location: String,
 
     val visitDate: Long,
+    val territory: String,
 
     val rawNotes: String,
+    val audioFilePath: String? = null,
 
     val meetingSummary: String?,
     val painPoints: String?,
     val actionItems: String?,
     val nextStep: String?,
+    val customerEmotion: String? = null,
+    val dealProbability: String? = null,
+    val suggestedStrategy: String? = null,
 
     val outcomeStatus: String,
 

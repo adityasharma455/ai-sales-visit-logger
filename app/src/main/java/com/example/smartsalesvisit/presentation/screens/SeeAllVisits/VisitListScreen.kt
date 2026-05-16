@@ -94,23 +94,8 @@ fun VisitListScreen(
 
             }
 
-        },
-
-        floatingActionButton = {
-
-            FloatingActionButton(
-                onClick = { onAddVisitClick() },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Visit"
-                )
-
-            }
-
         }
+
 
     ) { padding ->
 
@@ -250,11 +235,13 @@ fun VisitItem(
                     modifier = Modifier.weight(1f)
                 ) {
 
-                    Text(
-                        text = visit.customerName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    visit.customerName?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(6.dp))
 
@@ -265,16 +252,17 @@ fun VisitItem(
                     )
 
                 }
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text(visit.syncStatus)
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    AssistChip(
+                        onClick = {},
+                        label = {
+                            Text(visit.syncStatus)
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
                     )
-                )
+
+
 
             }
 

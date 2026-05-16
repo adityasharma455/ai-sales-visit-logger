@@ -1,5 +1,6 @@
 package com.example.smartsalesvisit.presentation.screens.AddVisitScreen
 
+import android.R
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,7 @@ import com.example.smartsalesvisit.common.ResultState
 import com.example.smartsalesvisit.common.NetworkUtils.NetworkUtils
 import com.example.smartsalesvisit.domain.models.Visit
 import com.example.smartsalesvisit.domain.useCase.AiVisitUseCase
+import com.example.smartsalesvisit.domain.useCase.TanscribeAudioUserUseCase
 import com.example.smartsalesvisit.domain.useCase.addVisitUseCase
 import com.example.smartsalesvisit.domain.useCase.updateVisitUseCase
 import com.example.smartsalesvisit.domain.useCase.UploadVisitOnServerUseCase
@@ -19,11 +21,15 @@ class RegisterVisitViewModel(
     private val updateVisitUseCase: updateVisitUseCase,
     private val aiVisitUseCase: AiVisitUseCase,
     private val uploadVisitOnServerUseCase: UploadVisitOnServerUseCase,
+    private val tanscribeAudioUserUseCase : TanscribeAudioUserUseCase,
     private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterVisitState())
     val state = _state.asStateFlow()
+
+    private val _speechToTextState = MutableStateFlow(SpeechToText())
+    val speechToTextState = _speechToTextState.asStateFlow()
 
     fun addVisit(visit: Visit) {
 
@@ -155,10 +161,51 @@ class RegisterVisitViewModel(
 
     }
 
+    fun transcribeAudioToNotes(audioPath: String) {
+
+        viewModelScope.launch {
+
+            println("VM: Transcription started")
+            println("VM: Audio Path = $audioPath")
+
+            tanscribeAudioUserUseCase.transcribeAudio(audioPath).collect { result ->
+
+                when (result) {
+
+                    is ResultState.Loading -> {
+                        println("VM: Loading...")
+                        _speechToTextState.value = SpeechToText(isLoading = true)
+                    }
+
+                    is ResultState.Success -> {
+                        println("VM: SUCCESS -> ${result.data}")
+                        _speechToTextState.value = SpeechToText(
+                            isLoading = false,
+                            Success = result.data
+                        )
+                    }
+
+                    is ResultState.Error -> {
+                        println("VM: ERROR -> ${result.message}")
+                        _speechToTextState.value = SpeechToText(
+                            isLoading = false,
+                            Error = result.message
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 data class RegisterVisitState(
     val isLoading: Boolean = false,
     val Success: Boolean? = null,
     val error: String? = ""
+)
+
+data class SpeechToText(
+    val isLoading: Boolean = false,
+    val Success: String? = null,
+    val Error: String ? = ""
 )

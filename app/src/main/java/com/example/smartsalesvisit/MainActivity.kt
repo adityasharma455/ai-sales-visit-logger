@@ -11,12 +11,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 import com.example.smartsalesvisit.domain.models.Visit
+import com.example.smartsalesvisit.presentation.managerScreens.ManagerVisitScreen
+import com.example.smartsalesvisit.presentation.managerScreens.summaryScreen.ManagerSummaryScreen
 import com.example.smartsalesvisit.presentation.navigation.AppNavigation
+import com.example.smartsalesvisit.presentation.navigation.ManagerVisitScreen
 import com.example.smartsalesvisit.presentation.screens.AddVisitScreen.RegisterVisitScreen
 import com.example.smartsalesvisit.presentation.screens.AuthScreen.SignUpScreen
 import com.example.smartsalesvisit.presentation.screens.SeeAllVisits.VisitListScreen
 import com.example.smartsalesvisit.presentation.screens.UpdateVisits.UpdateVisitScreen
+import com.example.smartsalesvisit.presentation.screens.VistsByDate.SalesAnalyticsScreen
 import com.example.smartsalesvisit.ui.theme.SmartSalesVisitTheme
 import com.google.firebase.auth.FirebaseAuth
 import org.koin.android.ext.android.inject
@@ -31,10 +36,15 @@ class MainActivity : ComponentActivity() {
             SmartSalesVisitTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val isLoggedIn = firebaseAuth.currentUser != null
-                    AppNavigation(isLoggedIn)
+                     AppNavigation(isLoggedIn)
+
+
+
                 }
             }
         }
     }
+
+
 }
 

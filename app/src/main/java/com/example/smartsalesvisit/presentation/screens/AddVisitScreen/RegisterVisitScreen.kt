@@ -1,6 +1,10 @@
 package com.example.smartsalesvisit.presentation.screens.AddVisitScreen
 
+import android.Manifest
+import android.util.Patterns
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,9 +19,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.smartsalesvisit.common.AudioRecorderManager
 import com.example.smartsalesvisit.domain.models.Visit
 import org.koin.compose.viewmodel.koinViewModel
 import java.util.*
+import com.example.smartsalesvisit.common.playRecording
+import com.example.smartsalesvisit.presentation.screens.utils.DatePickerField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,16 +39,51 @@ fun RegisterVisitScreen(
     var customerName by rememberSaveable { mutableStateOf("") }
     var contactPerson by rememberSaveable { mutableStateOf("") }
     var location by rememberSaveable { mutableStateOf("") }
+    var territory by remember { mutableStateOf("") }
     var notes by rememberSaveable { mutableStateOf("") }
 
     var outcomeStatus by rememberSaveable { mutableStateOf("Completed") }
     var followUpDate by rememberSaveable { mutableStateOf("") }
+
+    var customerEmail by rememberSaveable { mutableStateOf("") }
+    var emailError by remember { mutableStateOf<String?>(null) }
+
+    val recorder = remember { AudioRecorderManager(context) }
+    var isRecording by remember { mutableStateOf(false) }
+    var audioPath by remember { mutableStateOf<String?>(null) }
+
+    val speechState by viewModel.speechToTextState.collectAsState()
+
+    LaunchedEffect(speechState) {
+
+        speechState.Success?.let {
+            notes = it
+
+            Toast.makeText(
+                context,
+                "Transcription Completed",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        speechState.Error?.let {
+            if (it.isNotBlank()) {
+                Toast.makeText(
+                    context,
+                    it,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
 
     val outcomeOptions = listOf(
         "Completed",
         "Follow-up needed",
         "No interest"
     )
+
+
 
     val gradient = Brush.verticalGradient(
         listOf(
@@ -56,6 +98,37 @@ fun RegisterVisitScreen(
             onVisitAdded()
         }
     }
+
+//    val speechLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartActivityForResult()
+//    ) { result ->
+//
+//        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+//
+//            val text = result.data
+//                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+//                ?.firstOrNull()
+//
+//            if (!text.isNullOrBlank()) {
+//                notes = notes + " " + text   // append to notes
+//            } else {
+//                Toast.makeText(context, "No speech detected", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) @androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO) { granted ->
+        if (granted) {
+            audioPath = recorder.startRecording()
+            isRecording = true
+            Toast.makeText(context, "Recording Started", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     Scaffold(
 
@@ -112,11 +185,45 @@ fun RegisterVisitScreen(
                         )
 
                         OutlinedTextField(
-                            value = location,
-                            onValueChange = { location = it },
-                            label = { Text("Location") },
+                            value = customerEmail,
+                            onValueChange = {
+                                customerEmail = it
+                                emailError = null
+                            },
+                            label = { Text("Customer Email") },
+                            isError = emailError != null,
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        if (emailError != null) {
+                            Text(
+                                text = emailError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = territory,
+                            onValueChange = { territory = it },
+                            label = { Text("Enter Your Territory") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+
+
+
+                            OutlinedTextField(
+                                value = location,
+                                onValueChange = { location = it },
+                                label = { Text("Location") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+
+
+
+
 
                         OutlinedTextField(
                             value = notes,
@@ -125,6 +232,69 @@ fun RegisterVisitScreen(
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 3
                         )
+
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+
+                            Button(
+                                onClick = {
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                },
+                                enabled = !isRecording
+                            ) {
+                                Text("🎤 Start Recording")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Button(
+                                onClick = {
+
+                                    audioPath = recorder.stopRecording()
+                                    isRecording = false
+
+                                    Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+
+                                    audioPath?.let { path ->
+                                        viewModel.transcribeAudioToNotes(path) // 🔥 NO CALLBACK
+                                    }
+
+                                },
+                                enabled = isRecording
+                            ) {
+                                Text("⏹ Stop")
+                            }
+
+
+                        }
+
+                        Button(
+                            onClick = {
+                                audioPath?.let {
+                                    playRecording(it)
+                                } ?: Toast.makeText(context, "No recording found", Toast.LENGTH_SHORT).show()
+                            },
+                            enabled = !isRecording && audioPath != null   // 🔥 KEY FIX
+                        ) {
+                            Text("Play Recording")
+                        }
+
+
+                        if (speechState.isLoading) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Converting speech to text...")
+                            }
+                        }
+
+
 
                         Spacer(modifier = Modifier.height(6.dp))
 
@@ -160,27 +330,35 @@ fun RegisterVisitScreen(
 
                         if (outcomeStatus == "Follow-up needed") {
 
-                            OutlinedTextField(
-                                value = followUpDate,
-                                onValueChange = { followUpDate = it },
-                                label = { Text("Follow-up Date") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+
+                            if (outcomeStatus == "Follow-up needed") {
+
+                                DatePickerField(
+                                    label = "Follow-up Date"
+                                ) { _, formatted ->
+                                    followUpDate = formatted   // ✅ ONLY STRING
+                                }
+
+                            }
 
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
+                        val isFormValid =customerName.isNotBlank()&&
+                                    contactPerson.isNotBlank()&&
+                                    location.isNotBlank()&&
+                                    customerEmail.isNotBlank() &&
+                                    isValidEmail(customerEmail) &&
+                                    territory.isNotBlank() &&
+                                    (outcomeStatus != "Follow-up needed" || followUpDate.isNotBlank())
+
+
                         Button(
                             onClick = {
 
-                                if (customerName.isBlank()) {
-                                    Toast.makeText(context, "Enter Customer Name", Toast.LENGTH_SHORT).show()
-                                    return@Button
-                                }
-
-                                if (outcomeStatus == "Follow-up needed" && followUpDate.isBlank()) {
-                                    Toast.makeText(context, "Follow-up date required", Toast.LENGTH_SHORT).show()
+                                if (!isValidEmail(customerEmail)) {
+                                    emailError = "Invalid email format"
                                     return@Button
                                 }
 
@@ -189,13 +367,19 @@ fun RegisterVisitScreen(
                                     salesPersonId = "localUser",
                                     customerName = customerName,
                                     contactPerson = contactPerson,
+                                    customerEmail = customerEmail, // ✅ added
                                     location = location,
                                     visitDate = System.currentTimeMillis(),
+                                    territory = territory,
                                     rawNotes = notes,
+                                    audioFilePath = audioPath,
                                     meetingSummary = null,
                                     painPoints = null,
                                     actionItems = null,
                                     nextStep = null,
+                                    customerEmotion = null,
+                                    dealProbability = null,
+                                    suggestedStrategy = null,
                                     outcomeStatus = outcomeStatus,
                                     followUpDate = followUpDate,
                                     aiStatus = "None",
@@ -205,6 +389,7 @@ fun RegisterVisitScreen(
                                 viewModel.addVisit(visit)
 
                             },
+                            enabled = isFormValid, // 🔥 BUTTON CONTROL HERE
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
@@ -241,3 +426,11 @@ fun RegisterVisitScreen(
     }
 
 }
+
+
+
+
+fun isValidEmail(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+

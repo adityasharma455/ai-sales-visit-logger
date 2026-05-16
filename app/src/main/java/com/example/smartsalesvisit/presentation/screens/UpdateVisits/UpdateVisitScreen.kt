@@ -1,6 +1,12 @@
 package com.example.smartsalesvisit.presentation.screens.UpdateVisits
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +25,7 @@ import com.example.smartsalesvisit.domain.models.Visit
 import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Patterns
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,14 +45,22 @@ fun UpdateVisitScreen(
     var location by rememberSaveable { mutableStateOf(visit.location) }
     var visitDate by rememberSaveable { mutableStateOf(formatter.format(Date(visit.visitDate))) }
     var rawNotes by rememberSaveable { mutableStateOf(visit.rawNotes) }
+    var territory by rememberSaveable { mutableStateOf(visit.territory ?: "") }
 
     var meetingSummary by rememberSaveable { mutableStateOf(visit.meetingSummary ?: "") }
     var painPoints by rememberSaveable { mutableStateOf(visit.painPoints ?: "") }
     var actionItems by rememberSaveable { mutableStateOf(visit.actionItems ?: "") }
     var nextStep by rememberSaveable { mutableStateOf(visit.nextStep ?: "") }
 
+    var customerEmotion by rememberSaveable { mutableStateOf(visit.customerEmotion ?: "") }
+    var dealProbability by rememberSaveable { mutableStateOf(visit.dealProbability ?: "") }
+    var suggestedStrategy by rememberSaveable { mutableStateOf(visit.suggestedStrategy ?: "") }
+
     var outcomeStatus by rememberSaveable { mutableStateOf(visit.outcomeStatus) }
     var followUpDate by rememberSaveable { mutableStateOf(visit.followUpDate ?: " ") }
+
+    var customerEmail by rememberSaveable { mutableStateOf(visit.customerEmail) }
+    var emailError by remember { mutableStateOf<String?>(null) }
 
     val outcomeOptions = listOf(
         "Completed",
@@ -72,6 +87,26 @@ fun UpdateVisitScreen(
             Toast.makeText(context,state.Error,Toast.LENGTH_LONG).show()
         }
 
+    }
+
+
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+
+            val text = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+
+            if (!text.isNullOrBlank()) {
+                rawNotes = rawNotes + " " + text   // append to notes
+            } else {
+                Toast.makeText(context, "No speech detected", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     Scaffold(
@@ -131,6 +166,32 @@ fun UpdateVisitScreen(
                         )
 
                         OutlinedTextField(
+                            value = customerEmail,
+                            onValueChange = {
+                                customerEmail = it
+                                emailError = null
+                            },
+                            label = { Text("Customer Email") },
+                            isError = emailError != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        if (emailError != null) {
+                            Text(
+                                text = emailError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = territory,
+                            onValueChange = { territory = it },
+                            label = { Text("Enter Your Territory") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
                             value = location,
                             onValueChange = {location = it},
                             label = {Text("Location")},
@@ -152,6 +213,29 @@ fun UpdateVisitScreen(
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 3
                         )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(onClick = {
+
+                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                    putExtra(
+                                        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                    )
+                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak meeting notes")
+                                }
+
+                                speechLauncher.launch(intent)
+
+                            }) {
+                                Text("🎤 Speak")
+                            }
+
+                        }
+
 
                         OutlinedTextField(
                             value = meetingSummary,
@@ -179,6 +263,24 @@ fun UpdateVisitScreen(
                             onValueChange = {nextStep = it},
                             label = {Text("Next Step")},
                             modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = customerEmotion,
+                            onValueChange = { customerEmotion = it },
+                            label = { Text("Customer Emotion") }
+                        )
+
+                        OutlinedTextField(
+                            value = dealProbability,
+                            onValueChange = { dealProbability = it },
+                            label = { Text("Deal Probability") }
+                        )
+
+                        OutlinedTextField(
+                            value = suggestedStrategy,
+                            onValueChange = { suggestedStrategy = it },
+                            label = { Text("Suggested Strategy") }
                         )
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -221,17 +323,38 @@ fun UpdateVisitScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        val isFormValid =
+                            customerName.isNotBlank() &&
+                                    contactPerson.isNotBlank() &&
+                                    customerEmail.isNotBlank() &&
+                                    isValidEmail(customerEmail) &&
+                                    location.isNotBlank() &&
+                                    territory.isNotBlank() &&
+                                    rawNotes.isNotBlank() &&
+                                    (outcomeStatus != "Follow-up needed" || followUpDate.isNotBlank())
+
                         Button(
                             onClick = {
+
+                                if (!isValidEmail(customerEmail)) {
+                                    emailError = "Invalid email format"
+                                    return@Button
+                                }
 
                                 val updatedVisit = visit.copy(
                                     customerName = customerName,
                                     contactPerson = contactPerson,
+                                    customerEmail = customerEmail,
                                     location = location,
+                                    visitDate = System.currentTimeMillis(),
+                                    territory = territory,
                                     rawNotes = rawNotes,
                                     meetingSummary = meetingSummary,
                                     painPoints = painPoints,
                                     actionItems = actionItems,
+                                    customerEmotion = customerEmotion,
+                                    dealProbability = dealProbability,
+                                    suggestedStrategy = suggestedStrategy,
                                     outcomeStatus = outcomeStatus,
                                     followUpDate = followUpDate
                                 )
@@ -239,6 +362,7 @@ fun UpdateVisitScreen(
                                 viewModel.updateVisits(updatedVisit)
 
                             },
+                            enabled = isFormValid,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
@@ -269,4 +393,8 @@ fun UpdateVisitScreen(
 
     }
 
+}
+
+fun isValidEmail(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }

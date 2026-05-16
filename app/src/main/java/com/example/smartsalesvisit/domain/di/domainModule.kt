@@ -1,8 +1,14 @@
 package com.example.smartsalesvisit.domain.di
 
 import com.example.smartsalesvisit.domain.useCase.AiVisitUseCase
+import com.example.smartsalesvisit.domain.useCase.ChatBotUseCase
+import com.example.smartsalesvisit.domain.useCase.GetAllVisitsByTerritoryUseCase
+import com.example.smartsalesvisit.domain.useCase.GetSalePersonByIdUseCase
+import com.example.smartsalesvisit.domain.useCase.GetSummaryByDateUserUseCase
+import com.example.smartsalesvisit.domain.useCase.GetVisitsByDateForCurrentUserUseCase
 import com.example.smartsalesvisit.domain.useCase.LogInSalePersonUseCase
 import com.example.smartsalesvisit.domain.useCase.SyncVisitsUseCase
+import com.example.smartsalesvisit.domain.useCase.TanscribeAudioUserUseCase
 import com.example.smartsalesvisit.domain.useCase.UploadVisitOnServerUseCase
 import com.example.smartsalesvisit.domain.useCase.addVisitUseCase
 import com.example.smartsalesvisit.domain.useCase.getVisitByIdUseCase
@@ -22,5 +28,11 @@ val domainModule = module{
     factory { updateVisitUseCase(get()) }
     factory { UploadVisitOnServerUseCase(get()) }
     factory { SyncVisitsUseCase(get()) }
+    factory { GetAllVisitsByTerritoryUseCase(get()) }
+    factory { GetSalePersonByIdUseCase(get()) }
+    factory { GetVisitsByDateForCurrentUserUseCase(get()) }
+    factory { TanscribeAudioUserUseCase(get()) }
+    factory { ChatBotUseCase(get()) }
+    factory { GetSummaryByDateUserUseCase(get()) }
 
 }

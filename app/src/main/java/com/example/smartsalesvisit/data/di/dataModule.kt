@@ -3,13 +3,17 @@ package com.example.smartsalesvisit.data.di
 import androidx.room.Room
 import com.example.smartsalesvisit.data.AI.repoImpl.AiRepositoryImpl
 import com.example.smartsalesvisit.common.SyncManager
+import com.example.smartsalesvisit.data.ChatBotRepositoryImplementation.ChatBotRepositoryImpl
 import com.example.smartsalesvisit.data.localStorage.local.AppDatabase
 import com.example.smartsalesvisit.data.localStorage.local.VisitDao
 import com.example.smartsalesvisit.data.localStorage.repositoryImplementation.VisitRepositoryImpl
+import com.example.smartsalesvisit.data.localStorage.searchRepository.SarvamRepositoryImplementation
 import com.example.smartsalesvisit.data.serverRepository.serverRepoImpl
 import com.example.smartsalesvisit.domain.repository.AiRepository
+import com.example.smartsalesvisit.domain.repository.ChatBotRepository
 import com.example.smartsalesvisit.domain.repository.LocalStorageRepository
 import com.example.smartsalesvisit.domain.repository.ServerRepository
+import com.example.smartsalesvisit.domain.repository.searchRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.android.ext.koin.androidContext
@@ -43,10 +47,15 @@ val dataModule = module {
         AiRepositoryImpl()
     }
 
+    single<searchRepository> { SarvamRepositoryImplementation() }
+
+    single<ChatBotRepository> { ChatBotRepositoryImpl(firebaseAuth = get()) }
+
     single<SyncManager> { SyncManager(
         visitRepository = get(),
         serverRepository = get(),
-        aiVisitUseCase = get()
+        aiVisitUseCase = get(),
+        transcribeUseCase = get()
     ) }
 
 }

@@ -74,6 +74,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.database)
     implementation(libs.androidx.compose.remote.creation.core)
+    implementation(libs.play.services.location)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.room3.external.antlr)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -110,6 +114,10 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    implementation ("androidx.compose.material:material-icons-extended")
+    implementation ("androidx.compose.material3:material3")
+
 
 
 
