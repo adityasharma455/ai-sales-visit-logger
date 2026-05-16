@@ -1,189 +1,198 @@
 # AI Sales Visit Logger
 
-AI Sales Visit Logger is a mobile application designed for field sales representatives to record customer visits and automatically generate structured summaries
-using AI.
-The application supports **offline visit logging, AI-assisted summaries, and automatic background synchronization** when internet connectivity becomes available.
+AI Sales Visit Logger is an offline-first mobile application built for field sales teams and managers to record customer visits, convert unstructured meeting notes into structured CRM-ready summaries using AI, and sync data automatically when internet becomes available.
+
+The app supports both **sales representative workflow** and **manager workflow**.
 
 ---
 
-# Features
+## Key Features
 
-## 1. Authentication
+### 1) Authentication
+- Firebase Authentication for login
+- User session persists after app restart
+- Secure access to app features after successful sign-in
 
-Users can log in using **Firebase Authentication**.
+### 2) Visit Logging
+Sales representatives can create and update visit entries with:
+- Customer name
+- Contact person
+- Customer email
+- Territory
+- Location
+- Raw meeting notes
+- Outcome status
+- Follow-up date
+- Optional audio recording
 
-After a successful login, the user session is automatically persisted so the user does not need to log in again after restarting the application.
+Validation rules:
+- Customer name is required
+- Contact person is required
+- Location is required
+- Customer email must be valid
+- Territory is required
+- Follow-up date is required only when outcome is **Follow-up needed**
+
+### 3) Audio Recording + Speech-to-Text
+The app now supports voice-based note capture:
+- Record customer conversation
+- Save audio locally
+- Transcribe audio into text using **Sarvam AI Speech-to-Text**
+- Append transcription into visit notes
+
+This helps sales reps capture notes faster during field visits.
+
+### 4) AI-Assisted Visit Summary
+The app uses **Google Gemini API** to transform raw notes into structured data.
+
+AI generates:
+- Meeting Summary
+- Pain Points
+- Action Items
+- Recommended Next Step
+- Customer Emotion
+- Deal Probability
+- Suggested Strategy
+
+This makes visit data more useful for CRM and reporting.
+
+### 5) Offline-First Support
+All visits are stored locally using **Room Database** so users can:
+- Create visits offline
+- Edit visits offline
+- View visit history offline
+
+Pending visits are synchronized later when connectivity returns.
+
+### 6) Automatic Background Sync
+Synchronization is handled using **WorkManager**.
+
+Background sync flow:
+1. Fetch unsynced visits from Room
+2. Generate AI summary if needed
+3. Upload visit to Firebase Firestore
+4. Update sync status in local database
+
+Sync states used in the app:
+- **DRAFT** – visit created locally
+- **PENDING** – waiting for AI or upload
+- **SYNCED** – uploaded successfully
+- **FAILED** – sync failed and can be retried
+
+### 7) Manager Dashboard
+A separate manager section is available for monitoring team activity.
+
+Manager can:
+- View all territory visits
+- Search visits by territory
+- Open visit detail screen
+- View sales person info
+- See total visits and follow-ups
+- Open date-wise summary dashboard
+
+### 8) Date-Wise Summary Screen
+The manager summary screen shows:
+- Overall summary
+- Top territory
+- Territory performance ranking
+- Visit counts
+- Average deal probability
+- Insights
+- Actions
 
 ---
 
-## 2. Visit List
-
-The visit list screen displays all previously recorded customer visits.
-
-Each visit item includes:
-
-• Customer name  
-• Visit date and time  
-• AI-generated summary preview  
-• Sync status indicator  
-
-Sync status can be:
-
-• **DRAFT** – visit created but not processed  
-• **PENDING** – waiting for AI processing or upload  
-• **SYNCED** – successfully uploaded to backend  
-• **FAILED** – sync attempt failed and needs retry  
-
-Users can manually trigger synchronization using the refresh button.
-
----
-
-## 3. Create / Edit Visit
-
-Sales representatives can log a customer visit with the following fields:
-
-• Customer name  
-• Contact person  
-• Location  
-• Raw meeting notes  
-• Outcome status  
-• Follow-up date  
-
-Validation rules implemented:
-
-• Customer name is required  
-• Follow-up date is required **only when outcome is “Follow-up needed”**
-
-Visits are saved locally first to ensure **offline support**.
-
----
-
-## 4. AI Assisted Summary
-
-The application uses **Google Gemini API** to transform raw meeting notes into structured data.
-
-The AI generates:
-
-• Meeting summary  
-• Pain points  
-• Action items  
-• Recommended next step  
-
-This allows unstructured meeting notes to become structured CRM-ready information automatically.
-
----
-
-## 5. Offline Support
-
-The application follows an **offline-first architecture**.
-
-All visits are stored locally using **Room Database**, allowing users to:
-
-• Create visits offline  
-• Edit visits offline  
-• View visit history offline  
-
-When internet connectivity returns, pending visits are synchronized automatically.
-
----
-
-## 6. Automatic Background Sync
-
-Synchronization is handled using **Android WorkManager**.
-
-The background worker performs the following steps:
-
-1. Retrieves unsynced visits from the local database
-2. Generates AI summaries if not already completed
-3. Uploads visits to Firebase Firestore
-4. Updates sync status in the local database
-
-If any step fails, the visit remains **PENDING** so it can be retried later.
-
----
-
-# Screenshots
-
-| LogIn_Screen | All_Visits |
-|------------|--------|
-| ![logIn](screenshots/logIn_Screen.jpeg) | ![All_Visits](screenshots/All_Visits.jpeg) |
-
-| Register_Visit | Update_Visit |
-|--------|--------|
-| ![Register_Visit](screenshots/Register_Visit.jpeg) | ![Update_Visit](screenshots/Update_Visit.jpeg) | 
-
-## Demo Video
-https://drive.google.com/file/d/1bJ2UgI4b04ssYHPfcZQUwA5ppVlAHD40/view
----
-
-# Tech Stack
-
-• Kotlin  
-• Jetpack Compose  
-• MVVM Architecture  
-• Clean Architecture  
-• Room Database  
-• Firebase Authentication  
-• Firebase Firestore  
-• WorkManager  
-• Retrofit  
-• OkHttp  
-• Google Gemini API  
-• Koin (Dependency Injection)
+## Tech Stack
+- Kotlin
+- Jetpack Compose
+- MVVM Architecture
+- Clean Architecture
+- Room Database
+- Firebase Authentication
+- Firebase Firestore
+- WorkManager
+- Retrofit
+- OkHttp
+- Google Gemini API
+- Sarvam AI Speech-to-Text
+- Koin for Dependency Injection
 
 ---
 
 ## Project Architecture
 
-The application follows **MVVM + Clean Architecture** to ensure separation of concerns, scalability, and testability.
+The project follows **MVVM + Clean Architecture** for separation of concerns, scalability, and testability.
 
-### Architecture Layers
+### Layers
 
-presentation/
-UI layer built using Jetpack Compose and ViewModels.  
-ViewModels manage UI state and interact with domain use cases.
+#### `presentation/`
+UI layer built with Jetpack Compose and ViewModels.
 
-domain/
-Contains business logic including:
-- UseCases
-- Domain models
+#### `domain/`
+Contains:
+- Use cases
 - Repository interfaces
+- Domain models
 
-data/
-Implements repository interfaces and handles data sources:
-- Room Database (local persistence)
-- Firebase Firestore (backend)
-- Gemini API (AI summaries)
+#### `data/`
+Contains concrete implementations for:
+- Room local storage
+- Firebase Firestore
+- Gemini AI integration
+- Sarvam AI speech-to-text integration
 
-common/
+#### `common/`
 Shared utilities such as:
-- ResultState
-- SyncManager
-- WorkManager sync scheduler
+- `ResultState`
+- AI prompt helpers
+- Audio recorder utility
+- Playback helper
+- Sync helpers
 
 ---
 
-### MVVM Flow
+## Main App Flow
 
-The UI follows the MVVM pattern:
+### Sales Representative Flow
+UI → ViewModel → UseCase → Repository → Local DB / AI / Firestore
 
-UI (Compose Screens)  
-↓  
-ViewModel  
-↓  
-UseCase  
-↓  
-Repository  
-↓  
-Data Source (Room / Firebase / Gemini API)
-
-ViewModels expose StateFlows that are collected by Compose UI using `collectAsStateWithLifecycle()`.
-
-This ensures reactive UI updates and lifecycle-aware state management.
+### Manager Flow
+UI → ViewModel → UseCase → Repository → Firestore / Local DB
 
 ---
 
-# Setup Instructions
+## Screens Included
+
+### Sales Screens
+- Login Screen
+- Visit List Screen
+- Create Visit Screen
+- Update Visit Screen
+
+### Manager Screens
+- Manager Visit List Screen
+- Manager Visit Detail Screen
+- Manager Summary Screen
+
+---
+
+## Screenshots
+
+| Login Screen | All Visits |
+|---|---|
+| ![logIn](screenshots/logIn_Screen.jpeg) | ![All_Visits](screenshots/All_Visits.jpeg) |
+
+| Register Visit | Update Visit |
+|---|---|
+| ![Register_Visit](screenshots/Register_Visit.jpeg) | ![Update_Visit](screenshots/Update_Visit.jpeg) |
+
+| Manager Dashboard | Manager Summary |
+|---|---|
+| Add your screenshot here | Add your screenshot here |
+
+---
+
+## Setup Instructions
 
 ## 1 Clone the Repository
         git clone https://github.com/adityasharma455/ai-sales-visit-logger
@@ -203,7 +212,16 @@ This key is used for generating AI summaries.
 
 ---
 
-### 4 Firebase Setup
+## 4 Add Sarvam API Key
+
+Add your Sarvam AI key securely in local.properties too:
+
+SARVAM_API_KEY=YOUR_SARVAM_API_KEY
+
+Important: do not hardcode API keys inside source files. Keep them in local.properties or another secure build-time configuration.
+---
+
+### 5 Firebase Setup
 
 Create a Firebase project and enable:
 
@@ -214,7 +232,7 @@ Download `google-services.json` and place it inside: app/
 
 ---
 
-### 5 Build and Run
+### 6 Build and Run
 
 Run the application using an Android device or emulator.
 
@@ -244,11 +262,19 @@ Schedule follow-up meeting with technical team.
 
 ## Offline Sync Flow
 
-1 User creates visit offline  
-2 Visit stored in Room database  
-3 AI processing occurs when internet available  
-4 Visit uploaded to Firebase  
-5 Sync status updated to SYNCED
+1 User creates a visit offline
+2 Visit is stored in Room database
+3 Audio can be recorded and transcribed later
+4 AI summary is generated when available
+5 Visit is uploaded to Firestore
+6 Sync status is updated to SYNCED
+7 Notes for Development
+8 Use StateFlow for UI state
+9 Use collectAsStateWithLifecycle() in Compose
+10 Keep business logic inside ViewModels / UseCases
+11 Keep API keys out of GitHub
+12 Use one repository structure for both sales and manager modules
+
 
 ---
 
@@ -259,5 +285,4 @@ Aditya Sharma
 📱 Android Developer | Kotlin | Jetpack Compose 
 
 🔗 GitHub: https://github.com/adityasharma455
-
 
