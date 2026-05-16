@@ -188,7 +188,7 @@ UI → ViewModel → UseCase → Repository → Firestore / Local DB
 
 | Manager Dashboard | Manager Summary |
 |---|---|
-| Add your screenshot here | Add your screenshot here |
+| ![Manager Dashborad](screenshots/ManagerDashboard.jpeg) | ![Manager Summary](screenshots/ManagerDateFilter.jpeg) |
 
 ---
 
